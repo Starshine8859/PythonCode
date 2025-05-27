@@ -1,32 +1,54 @@
-import tkinter as tk
-from tkinter import ttk
-import threading
-import time
+import sys
+import random
+from PyQt5.QtWidgets import QApplication, QWidget
+from PyQt5.QtCore import Qt, QTimer, QPointF
+from PyQt5.QtGui import QPainter, QColor, QBrush, QPen
 
-# Simulated data loading function
-def load_data(progress_label):
-    for i in range(5):
-        time.sleep(1)
-        progress_label.config(text=f"Loading... {'.' * ((i % 3) + 1)}")
-    progress_label.config(text="✅ Done loading!")
+class Bubble:
+    def __init__(self, width, height):
+        self.pos = QPointF(random.uniform(0, width), random.uniform(0, height))
+        self.vel = QPointF(random.uniform(-2, 2), random.uniform(-2, 2))
+        self.radius = random.randint(20, 40)
+        self.color = QColor(random.randint(50, 255), random.randint(50, 255), 255, 180)
 
-def start_loading():
-    # Run load_data in a separate thread so the GUI stays responsive
-    threading.Thread(target=load_data, args=(progress_label,), daemon=True).start()
+    def move(self, width, height):
+        self.pos += self.vel
+        # Bounce off edges
+        if self.pos.x() < 0 or self.pos.x() > width:
+            self.vel.setX(-self.vel.x())
+        if self.pos.y() < 0 or self.pos.y() > height:
+            self.vel.setY(-self.vel.y())
 
-# Create the main dashboard window
-root = tk.Tk()
-root.title("Python Dashboard")
-root.geometry("300x150")
+class BubbleScreensaver(QWidget):
+    def __init__(self):
+        super().__init__()
+        self.setWindowTitle("🪐 Space Bubble Loading")
+        self.setGeometry(100, 100, 800, 600)
+        self.setStyleSheet("background-color: #000000;")
+        self.bubbles = [Bubble(self.width(), self.height()) for _ in range(15)]
 
-# Label and button
-title_label = tk.Label(root, text="📊 Dashboard", font=("Helvetica", 16))
-title_label.pack(pady=10)
+        self.timer = QTimer()
+        self.timer.timeout.connect(self.update_animation)
+        self.timer.start(16)  # ~60 FPS
 
-progress_label = tk.Label(root, text="", font=("Helvetica", 12))
-progress_label.pack()
+    def update_animation(self):
+        for bubble in self.bubbles:
+            bubble.move(self.width(), self.height())
+        self.update()
 
-load_button = ttk.Button(root, text="Start Loading", command=start_loading)
-load_button.pack(pady=10)
+    def paintEvent(self, event):
+        painter = QPainter(self)
+        painter.setRenderHint(QPainter.Antialiasing)
 
-root.mainloop()
+        for bubble in self.bubbles:
+            painter.setBrush(QBrush(bubble.color, Qt.SolidPattern))
+            pen = QPen(Qt.white)
+            pen.setWidth(1)
+            painter.setPen(pen)
+            painter.drawEllipse(bubble.pos, bubble.radius, bubble.radius)
+
+if __name__ == "__main__":
+    app = QApplication(sys.argv)
+    screen = BubbleScreensaver()
+    screen.show()
+    sys.exit(app.exec_())
