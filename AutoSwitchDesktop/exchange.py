@@ -17,7 +17,19 @@ def switch_desktop(direction="left"):
     keyboard.release('ctrl')
 
 # Example: switch to the right desktop
-switch_desktop("right")
+while(1):
+    switch_desktop("right")
+    time.sleep(4*1000*60)
+    switch_desktop("right")
+    time.sleep(4*1000*60)
+    switch_desktop("right")
+    time.sleep(4*1000*60)
+    switch_desktop("left")
+    time.sleep(4*1000*60)
+    switch_desktop("left")
+    time.sleep(4*1000*60)
+    switch_desktop("left")
+    time.sleep(4*1000*60)
 
 # Example: switch to the left desktop
 # switch_desktop("left")
